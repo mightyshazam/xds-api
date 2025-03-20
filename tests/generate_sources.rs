@@ -175,7 +175,7 @@ fn compile_xds_api<P: AsRef<Path>, Q: AsRef<Path>>(
         .emit_rerun_if_changed(false)
         .include_file("mod.rs")
         .compile_well_known_types(true)
-        .compile_with_config(prost_config, &proto_paths, &includes)?;
+        .compile_protos_with_config(prost_config, &proto_paths, &includes)?;
 
     eprintln!("+ pbjson_build");
     let encoded_descriptor_set = std::fs::read(&descriptor_path).unwrap();
