@@ -868,7 +868,6 @@ dependencies = [
  "anyhow",
  "enum-map",
  "glob",
- "once_cell",
  "pbjson",
  "pbjson-build",
  "prost",

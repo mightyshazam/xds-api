@@ -33,7 +33,7 @@ macro_rules! well_known_types {
             pub fn from_type_url(type_url: &str) -> Option<Self> {
                 use prost::Name;
 
-                static FROM_TYPE_URL: once_cell::sync::Lazy<Box<[(String, $id_name)]>> = once_cell::sync::Lazy::new(|| {
+                static FROM_TYPE_URL: std::sync::LazyLock<Box<[(String, $id_name)]>> = std::sync::LazyLock::new(|| {
                     let urls = vec![
                         $(
                             (<$xds_type>::type_url(), $id_name::$variant),
@@ -48,7 +48,7 @@ macro_rules! well_known_types {
             pub fn type_url(&self) -> &'static str {
                 use prost::Name;
 
-                static TO_TYPE_URL: once_cell::sync::Lazy<enum_map::EnumMap<$id_name, String>> = once_cell::sync::Lazy::new(|| {
+                static TO_TYPE_URL: std::sync::LazyLock<enum_map::EnumMap<$id_name, String>> = std::sync::LazyLock::new(|| {
                     enum_map::enum_map! {
                         $(
                             $id_name::$variant => <$xds_type>::type_url(),
