@@ -871,12 +871,18 @@ impl serde::Serialize for SocketEvent {
         if self.timestamp.is_some() {
             len += 1;
         }
+        if self.connection.is_some() {
+            len += 1;
+        }
         if self.event_selector.is_some() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("envoy.data.tap.v3.SocketEvent", len)?;
         if let Some(v) = self.timestamp.as_ref() {
             struct_ser.serialize_field("timestamp", v)?;
+        }
+        if let Some(v) = self.connection.as_ref() {
+            struct_ser.serialize_field("connection", v)?;
         }
         if let Some(v) = self.event_selector.as_ref() {
             match v {
@@ -902,6 +908,7 @@ impl<'de> serde::Deserialize<'de> for SocketEvent {
     {
         const FIELDS: &[&str] = &[
             "timestamp",
+            "connection",
             "read",
             "write",
             "closed",
@@ -910,6 +917,7 @@ impl<'de> serde::Deserialize<'de> for SocketEvent {
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             Timestamp,
+            Connection,
             Read,
             Write,
             Closed,
@@ -935,6 +943,7 @@ impl<'de> serde::Deserialize<'de> for SocketEvent {
                     {
                         match value {
                             "timestamp" => Ok(GeneratedField::Timestamp),
+                            "connection" => Ok(GeneratedField::Connection),
                             "read" => Ok(GeneratedField::Read),
                             "write" => Ok(GeneratedField::Write),
                             "closed" => Ok(GeneratedField::Closed),
@@ -958,6 +967,7 @@ impl<'de> serde::Deserialize<'de> for SocketEvent {
                     V: serde::de::MapAccess<'de>,
             {
                 let mut timestamp__ = None;
+                let mut connection__ = None;
                 let mut event_selector__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
@@ -966,6 +976,12 @@ impl<'de> serde::Deserialize<'de> for SocketEvent {
                                 return Err(serde::de::Error::duplicate_field("timestamp"));
                             }
                             timestamp__ = map_.next_value()?;
+                        }
+                        GeneratedField::Connection => {
+                            if connection__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("connection"));
+                            }
+                            connection__ = map_.next_value()?;
                         }
                         GeneratedField::Read => {
                             if event_selector__.is_some() {
@@ -992,6 +1008,7 @@ impl<'de> serde::Deserialize<'de> for SocketEvent {
                 }
                 Ok(SocketEvent {
                     timestamp: timestamp__,
+                    connection: connection__,
                     event_selector: event_selector__,
                 })
             }

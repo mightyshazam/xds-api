@@ -21,6 +21,8 @@ pub struct RateLimitRequest {
     >,
     /// Rate limit requests can optionally specify the number of hits a request adds to the matched
     /// limit. If the value is not set in the message, a request increases the matched limit by 1.
+    /// This value can be overridden by setting filter state value ``envoy.ratelimit.hits_addend``
+    /// to the desired number. Invalid number (< 0) or number will be ignored.
     #[prost(uint32, tag = "3")]
     pub hits_addend: u32,
 }
@@ -127,6 +129,8 @@ pub mod rate_limit_response {
             Hour = 3,
             /// The time unit representing a day.
             Day = 4,
+            /// The time unit representing a week.
+            Week = 7,
             /// The time unit representing a month.
             Month = 5,
             /// The time unit representing a year.
@@ -144,6 +148,7 @@ pub mod rate_limit_response {
                     Self::Minute => "MINUTE",
                     Self::Hour => "HOUR",
                     Self::Day => "DAY",
+                    Self::Week => "WEEK",
                     Self::Month => "MONTH",
                     Self::Year => "YEAR",
                 }
@@ -156,6 +161,7 @@ pub mod rate_limit_response {
                     "MINUTE" => Some(Self::Minute),
                     "HOUR" => Some(Self::Hour),
                     "DAY" => Some(Self::Day),
+                    "WEEK" => Some(Self::Week),
                     "MONTH" => Some(Self::Month),
                     "YEAR" => Some(Self::Year),
                     _ => None,

@@ -606,9 +606,15 @@ impl serde::Serialize for GenericSecret {
         if self.secret.is_some() {
             len += 1;
         }
+        if !self.secrets.is_empty() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("envoy.extensions.transport_sockets.tls.v3.GenericSecret", len)?;
         if let Some(v) = self.secret.as_ref() {
             struct_ser.serialize_field("secret", v)?;
+        }
+        if !self.secrets.is_empty() {
+            struct_ser.serialize_field("secrets", &self.secrets)?;
         }
         struct_ser.end()
     }
@@ -621,11 +627,13 @@ impl<'de> serde::Deserialize<'de> for GenericSecret {
     {
         const FIELDS: &[&str] = &[
             "secret",
+            "secrets",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             Secret,
+            Secrets,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -648,6 +656,7 @@ impl<'de> serde::Deserialize<'de> for GenericSecret {
                     {
                         match value {
                             "secret" => Ok(GeneratedField::Secret),
+                            "secrets" => Ok(GeneratedField::Secrets),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -668,6 +677,7 @@ impl<'de> serde::Deserialize<'de> for GenericSecret {
                     V: serde::de::MapAccess<'de>,
             {
                 let mut secret__ = None;
+                let mut secrets__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::Secret => {
@@ -676,10 +686,19 @@ impl<'de> serde::Deserialize<'de> for GenericSecret {
                             }
                             secret__ = map_.next_value()?;
                         }
+                        GeneratedField::Secrets => {
+                            if secrets__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("secrets"));
+                            }
+                            secrets__ = Some(
+                                map_.next_value::<std::collections::HashMap<_, _>>()?
+                            );
+                        }
                     }
                 }
                 Ok(GenericSecret {
                     secret: secret__,
+                    secrets: secrets__.unwrap_or_default(),
                 })
             }
         }
@@ -1097,6 +1116,9 @@ impl serde::Serialize for SubjectAltNameMatcher {
         if self.matcher.is_some() {
             len += 1;
         }
+        if !self.oid.is_empty() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("envoy.extensions.transport_sockets.tls.v3.SubjectAltNameMatcher", len)?;
         if self.san_type != 0 {
             let v = subject_alt_name_matcher::SanType::try_from(self.san_type)
@@ -1105,6 +1127,9 @@ impl serde::Serialize for SubjectAltNameMatcher {
         }
         if let Some(v) = self.matcher.as_ref() {
             struct_ser.serialize_field("matcher", v)?;
+        }
+        if !self.oid.is_empty() {
+            struct_ser.serialize_field("oid", &self.oid)?;
         }
         struct_ser.end()
     }
@@ -1119,12 +1144,14 @@ impl<'de> serde::Deserialize<'de> for SubjectAltNameMatcher {
             "san_type",
             "sanType",
             "matcher",
+            "oid",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             SanType,
             Matcher,
+            Oid,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -1148,6 +1175,7 @@ impl<'de> serde::Deserialize<'de> for SubjectAltNameMatcher {
                         match value {
                             "sanType" | "san_type" => Ok(GeneratedField::SanType),
                             "matcher" => Ok(GeneratedField::Matcher),
+                            "oid" => Ok(GeneratedField::Oid),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -1169,6 +1197,7 @@ impl<'de> serde::Deserialize<'de> for SubjectAltNameMatcher {
             {
                 let mut san_type__ = None;
                 let mut matcher__ = None;
+                let mut oid__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::SanType => {
@@ -1183,11 +1212,18 @@ impl<'de> serde::Deserialize<'de> for SubjectAltNameMatcher {
                             }
                             matcher__ = map_.next_value()?;
                         }
+                        GeneratedField::Oid => {
+                            if oid__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("oid"));
+                            }
+                            oid__ = Some(map_.next_value()?);
+                        }
                     }
                 }
                 Ok(SubjectAltNameMatcher {
                     san_type: san_type__.unwrap_or_default(),
                     matcher: matcher__,
+                    oid: oid__.unwrap_or_default(),
                 })
             }
         }
@@ -1206,6 +1242,7 @@ impl serde::Serialize for subject_alt_name_matcher::SanType {
             Self::Dns => "DNS",
             Self::Uri => "URI",
             Self::IpAddress => "IP_ADDRESS",
+            Self::OtherName => "OTHER_NAME",
         };
         serializer.serialize_str(variant)
     }
@@ -1222,6 +1259,7 @@ impl<'de> serde::Deserialize<'de> for subject_alt_name_matcher::SanType {
             "DNS",
             "URI",
             "IP_ADDRESS",
+            "OTHER_NAME",
         ];
 
         struct GeneratedVisitor;
@@ -1267,6 +1305,7 @@ impl<'de> serde::Deserialize<'de> for subject_alt_name_matcher::SanType {
                     "DNS" => Ok(subject_alt_name_matcher::SanType::Dns),
                     "URI" => Ok(subject_alt_name_matcher::SanType::Uri),
                     "IP_ADDRESS" => Ok(subject_alt_name_matcher::SanType::IpAddress),
+                    "OTHER_NAME" => Ok(subject_alt_name_matcher::SanType::OtherName),
                     _ => Err(serde::de::Error::unknown_variant(value, FIELDS)),
                 }
             }

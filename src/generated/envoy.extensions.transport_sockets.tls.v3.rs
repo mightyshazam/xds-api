@@ -272,12 +272,13 @@ pub struct TlsCertificate {
         super::super::super::super::config::core::v3::WatchedDirectory,
     >,
     /// BoringSSL private key method provider. This is an alternative to :ref:`private_key
-    /// <envoy_v3_api_field_extensions.transport_sockets.tls.v3.TlsCertificate.private_key>` field. This can't be
-    /// marked as ``oneof`` due to API compatibility reasons. Setting both :ref:`private_key
-    /// <envoy_v3_api_field_extensions.transport_sockets.tls.v3.TlsCertificate.private_key>` and
-    /// :ref:`private_key_provider
-    /// <envoy_v3_api_field_extensions.transport_sockets.tls.v3.TlsCertificate.private_key_provider>` fields will result in an
-    /// error.
+    /// <envoy_v3_api_field_extensions.transport_sockets.tls.v3.TlsCertificate.private_key>` field.
+    /// When both :ref:`private_key <envoy_v3_api_field_extensions.transport_sockets.tls.v3.TlsCertificate.private_key>` and
+    /// :ref:`private_key_provider <envoy_v3_api_field_extensions.transport_sockets.tls.v3.TlsCertificate.private_key_provider>` fields are set,
+    /// ``private_key_provider`` takes precedence.
+    /// If ``private_key_provider`` is unavailable and :ref:`fallback
+    /// <envoy_v3_api_field_extensions.transport_sockets.tls.v3.PrivateKeyProvider.fallback>`
+    /// is enabled, ``private_key`` will be used.
     #[prost(message, optional, tag = "6")]
     pub private_key_provider: ::core::option::Option<PrivateKeyProvider>,
     /// The password to decrypt the TLS private key. If this field is not set, it is assumed that the
@@ -358,7 +359,7 @@ impl ::prost::Name for TlsSessionTicketKeys {
 /// \[#not-implemented-hide:\]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CertificateProviderPluginInstance {
-    /// Provider instance name. If not present, defaults to "default".
+    /// Provider instance name.
     ///
     /// Instance names should generally be defined not in terms of the underlying provider
     /// implementation (e.g., "file_watcher") but rather in terms of the function of the
@@ -391,10 +392,32 @@ pub struct SubjectAltNameMatcher {
     #[prost(enumeration = "subject_alt_name_matcher::SanType", tag = "1")]
     pub san_type: i32,
     /// Matcher for SAN value.
+    ///
+    /// If the :ref:`san_type <envoy_v3_api_field_extensions.transport_sockets.tls.v3.SubjectAltNameMatcher.san_type>`
+    /// is :ref:`DNS <envoy_v3_api_enum_value_extensions.transport_sockets.tls.v3.SubjectAltNameMatcher.SanType.DNS>`
+    /// and the matcher type is :ref:`exact <envoy_v3_api_field_type.matcher.v3.StringMatcher.exact>`, DNS wildcards are evaluated
+    /// according to the rules in <https://www.rfc-editor.org/rfc/rfc6125#section-6.4.3.>
+    /// For example, ``*.example.com`` would match ``test.example.com`` but not ``example.com`` and not
+    /// ``a.b.example.com``.
+    ///
+    /// The string matching for OTHER_NAME SAN values depends on their ASN.1 type:
+    ///
+    ///           * OBJECT: Validated against its dotted numeric notation (e.g., "1.2.3.4")
+    ///           * BOOLEAN: Validated against strings "true" or "false"
+    ///           * INTEGER/ENUMERATED: Validated against a string containing the integer value
+    ///           * NULL: Validated against an empty string
+    ///           * Other types: Validated directly against the string value
     #[prost(message, optional, tag = "2")]
     pub matcher: ::core::option::Option<
         super::super::super::super::r#type::matcher::v3::StringMatcher,
     >,
+    /// OID Value which is required if OTHER_NAME SAN type is used.
+    /// For example, UPN OID is 1.3.6.1.4.1.311.20.2.3
+    /// (Reference: <http://oid-info.com/get/1.3.6.1.4.1.311.20.2.3>).
+    ///
+    /// If set for SAN types other than OTHER_NAME, it will be ignored.
+    #[prost(string, tag = "3")]
+    pub oid: ::prost::alloc::string::String,
 }
 /// Nested message and enum types in `SubjectAltNameMatcher`.
 pub mod subject_alt_name_matcher {
@@ -418,6 +441,7 @@ pub mod subject_alt_name_matcher {
         Dns = 2,
         Uri = 3,
         IpAddress = 4,
+        OtherName = 5,
     }
     impl SanType {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -431,6 +455,7 @@ pub mod subject_alt_name_matcher {
                 Self::Dns => "DNS",
                 Self::Uri => "URI",
                 Self::IpAddress => "IP_ADDRESS",
+                Self::OtherName => "OTHER_NAME",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -441,6 +466,7 @@ pub mod subject_alt_name_matcher {
                 "DNS" => Some(Self::Dns),
                 "URI" => Some(Self::Uri),
                 "IP_ADDRESS" => Some(Self::IpAddress),
+                "OTHER_NAME" => Some(Self::OtherName),
                 _ => None,
             }
         }
@@ -755,9 +781,17 @@ impl ::prost::Name for CertificateValidationContext {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GenericSecret {
-    /// Secret of generic type and is available to filters.
+    /// Secret of generic type and is available to filters. It is expected
+    /// that only only one of secret and secrets is set.
     #[prost(message, optional, tag = "1")]
     pub secret: ::core::option::Option<
+        super::super::super::super::config::core::v3::DataSource,
+    >,
+    /// For cases where multiple associated secrets need to be distributed together. It is expected
+    /// that only only one of secret and secrets is set.
+    #[prost(map = "string, message", tag = "2")]
+    pub secrets: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
         super::super::super::super::config::core::v3::DataSource,
     >,
 }

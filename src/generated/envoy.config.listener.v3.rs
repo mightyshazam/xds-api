@@ -316,45 +316,6 @@ pub struct FilterChain {
     /// requires that filter chains are uniquely named within a listener.
     #[prost(string, tag = "7")]
     pub name: ::prost::alloc::string::String,
-    /// \[#not-implemented-hide:\] The configuration to specify whether the filter chain will be built on-demand.
-    /// If this field is not empty, the filter chain will be built on-demand.
-    /// Otherwise, the filter chain will be built normally and block listener warming.
-    #[prost(message, optional, tag = "8")]
-    pub on_demand_configuration: ::core::option::Option<
-        filter_chain::OnDemandConfiguration,
-    >,
-}
-/// Nested message and enum types in `FilterChain`.
-pub mod filter_chain {
-    /// The configuration for on-demand filter chain. If this field is not empty in FilterChain message,
-    /// a filter chain will be built on-demand.
-    /// On-demand filter chains help speedup the warming up of listeners since the building and initialization of
-    /// an on-demand filter chain will be postponed to the arrival of new connection requests that require this filter chain.
-    /// Filter chains that are not often used can be set as on-demand.
-    #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-    pub struct OnDemandConfiguration {
-        /// The timeout to wait for filter chain placeholders to complete rebuilding.
-        /// 1. If this field is set to 0, timeout is disabled.
-        /// 2. If not specified, a default timeout of 15s is used.
-        /// Rebuilding will wait until dependencies are ready, have failed, or this timeout is reached.
-        /// Upon failure or timeout, all connections related to this filter chain will be closed.
-        /// Rebuilding will start again on the next new connection.
-        #[prost(message, optional, tag = "1")]
-        pub rebuild_timeout: ::core::option::Option<
-            super::super::super::super::super::google::protobuf::Duration,
-        >,
-    }
-    impl ::prost::Name for OnDemandConfiguration {
-        const NAME: &'static str = "OnDemandConfiguration";
-        const PACKAGE: &'static str = "envoy.config.listener.v3";
-        fn full_name() -> ::prost::alloc::string::String {
-            "envoy.config.listener.v3.FilterChain.OnDemandConfiguration".into()
-        }
-        fn type_url() -> ::prost::alloc::string::String {
-            "type.googleapis.com/envoy.config.listener.v3.FilterChain.OnDemandConfiguration"
-                .into()
-        }
-    }
 }
 impl ::prost::Name for FilterChain {
     const NAME: &'static str = "FilterChain";
@@ -495,7 +456,7 @@ impl ::prost::Name for ListenerFilter {
     }
 }
 /// Configuration specific to the UDP QUIC listener.
-/// \[#next-free-field: 12\]
+/// \[#next-free-field: 14\]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct QuicProtocolOptions {
     #[prost(message, optional, tag = "1")]
@@ -574,6 +535,19 @@ pub struct QuicProtocolOptions {
     pub connection_debug_visitor_config: ::core::option::Option<
         super::super::core::v3::TypedExtensionConfig,
     >,
+    /// Configure a type of UDP cmsg to pass to listener filters via QuicReceivedPacket.
+    /// Both level and type must be specified for cmsg to be saved.
+    /// Cmsg may be truncated or omitted if expected size is not set.
+    /// If not specified, no cmsg will be saved to QuicReceivedPacket.
+    #[prost(message, repeated, tag = "12")]
+    pub save_cmsg_config: ::prost::alloc::vec::Vec<
+        super::super::core::v3::SocketCmsgHeaders,
+    >,
+    /// If true, the listener will reject connection-establishing packets at the
+    /// QUIC layer by replying with an empty version negotiation packet to the
+    /// client.
+    #[prost(bool, tag = "13")]
+    pub reject_new_connections: bool,
 }
 impl ::prost::Name for QuicProtocolOptions {
     const NAME: &'static str = "QuicProtocolOptions";
@@ -822,10 +796,10 @@ pub struct Listener {
         super::super::super::super::google::protobuf::BoolValue,
     >,
     /// Additional socket options that may not be present in Envoy source code or
-    /// precompiled binaries. The socket options can be updated for a listener when
+    /// precompiled binaries.
+    /// It is not allowed to update the socket options for any existing address if
     /// :ref:`enable_reuse_port <envoy_v3_api_field_config.listener.v3.Listener.enable_reuse_port>`
-    /// is ``true``. Otherwise, if socket options change during a listener update the update will be rejected
-    /// to make it clear that the options were not updated.
+    /// is ``false`` to avoid the conflict when creating new sockets for the listener.
     #[prost(message, repeated, tag = "13")]
     pub socket_options: ::prost::alloc::vec::Vec<super::super::core::v3::SocketOption>,
     /// Whether the listener should accept TCP Fast Open (TFO) connections.
