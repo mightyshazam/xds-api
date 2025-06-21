@@ -142,6 +142,7 @@ fn compile_xds_api<P: AsRef<Path>, Q: AsRef<Path>>(
             "envoy/service/**/v3/*.proto",
             "envoy/extensions/filters/network/http_connection_manager/v3/*.proto",
             "envoy/extensions/filters/http/router/v3/*.proto",
+            "envoy/extensions/filters/http/ext_authz/v3/*.proto",
             "envoy/extensions/clusters/aggregate/v3/*.proto",
         ],
     );

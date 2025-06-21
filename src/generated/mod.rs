@@ -181,6 +181,13 @@ pub mod envoy {
         }
         pub mod filters {
             pub mod http {
+                pub mod ext_authz {
+                    pub mod v3 {
+                        include!("envoy.extensions.filters.http.ext_authz.v3.rs");
+                        #[cfg(feature = "pbjson")]
+                        include!("envoy.extensions.filters.http.ext_authz.v3.serde.rs");
+                    }
+                }
                 pub mod ext_proc {
                     pub mod v3 {
                         include!("envoy.extensions.filters.http.ext_proc.v3.rs");
